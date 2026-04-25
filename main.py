@@ -69,7 +69,7 @@ def abrir_whatsapp_e_aguardar_login(page):
     
     try:
         # A barra de buscar os contatos no painel esquerdo indica que o aplicativo abriu integralmente.
-        page.wait_for_selector('div[contenteditable="true"]', timeout=300000) # Até 5 min parado aqui.
+        page.wait_for_selector('div[dir="ltr"]', timeout=300000) # Até 5 min parado aqui.
         print_log("Login no painel do Web concluído e carregado com sucesso!")
         page.wait_for_timeout(5000) # Pausa pra digerir carregamento dos contatos
         return True
@@ -85,7 +85,7 @@ def localizar_e_acessar_conversa(page, nome_grupo):
     """
     print_log(f"Procurando contato/grupo: '{nome_grupo}'...")
     try:
-        campo_busca = page.locator('div[contenteditable="true"]').first
+        campo_busca = page.locator('input[aria-label="Search or start a new chat"]').first
         campo_busca.click()
         campo_busca.fill(nome_grupo)
         
@@ -113,7 +113,7 @@ def criar_uma_enquete(page, titulo, opcoes):
     
     # 1. Abre o menu vertical de anexos
     try:
-        botao_anexo = page.locator('span[data-icon="plus"]').first
+        botao_anexo = page.locator('span[data-icon="plus-rounded"]').first
         if not botao_anexo.is_visible():
             botao_anexo = page.locator('span[data-icon="attach-menu-plus"]').first
         botao_anexo.click()
@@ -125,7 +125,7 @@ def criar_uma_enquete(page, titulo, opcoes):
     
     # 2. Seleciona "Enquete"
     try:
-        page.locator('span[data-icon="poll"]').first.click()
+        page.locator('button[aria-label="Poll"]').first.click()
     except Exception as e:
         print_log(f"Erro ao clicar na funcionalidade enquete: {e}")
         return False
@@ -145,7 +145,7 @@ def criar_uma_enquete(page, titulo, opcoes):
         page.wait_for_timeout(400)
         
     # 4. Finaliza e Envia
-    page.locator('span[data-icon="send"]').first.click()
+    page.locator('div[aria-label="Send"]').first.click()
     print_log(f"Enquete '{titulo}' enviada com firmeza!")
     
     # Delay entre enquetes para agir de forma orgânica
