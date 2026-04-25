@@ -16,41 +16,21 @@ O projeto foi criado para ser amigável e modular, evitando que você precise me
 
 - Python `3.9` ou superior instalado no seu sistema.
 
-## ⚙️ Instalação Passo a Passo
+## ⚙️ Como Instalar e Rodar (Modo Simplificado)
 
-Abra o seu terminal na pasta do projeto e execute os passos abaixo.
+Nós simplificamos todo o processo. Você não precisa mais criar e gerenciar o ambiente virtual manualmente ou baixar os navegadores por conta própria! 
 
-**1. Crie e ative um ambiente virtual** *(Recomendado para não conflitar com outras versões na sua máquina)*
-```bash
-# No Windows:
-python -m venv venv
-venv\Scripts\activate
-
-# No Mac / Linux:
-python3 -m venv venv
-source venv/bin/activate
-```
-
-**2. Instale as dependências Python**
-```bash
-pip install -r requirements.txt
-```
-
-**3. Instale o motor do navegador (Playwright)**
-Esse comando fará o download da instância invisível/visível do Chromium (Chrome) para a automação:
-```bash
-playwright install chromium
-```
-
----
-
-## 🎮 Como Usar
-
-Com o ambiente virtual ativado, rode sempre o arquivo principal:
+Basta abrir o seu terminal na pasta do projeto e rodar o comando de inicialização automática. Ele fará a configuração da `venv`, instalação de dependências, download do navegador da automação e já iniciará o painel:
 
 ```bash
-python main.py
+# No Windows
+python run.py
+
+# No Mac / Linux
+python3 run.py
 ```
+
+Pronto! **Sempre que quiser usar a ferramenta, basta rodar esse mesmo comando.** O script é inteligente e só instalará as dependências se for a primeira vez. Assim que o painel abrir:
 
 O terminal interativo aparecerá:
 1. Responda qual **mês (ex: 5)** e qual **ano (ex: 2026)** você deseja gerar as reuniões.
