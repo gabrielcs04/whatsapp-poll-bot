@@ -57,10 +57,3 @@ def gerar_json(mes, ano, nome_grupo="ARQUIVOS IMPORTANTES"):
         
     print(f"[SUCESSO] Arquivo config.json atualizado para as enquetes de {nome_mes} de {ano}!")
     print(f"Foram geradas {semana_num-1} semanas de enquetes.")
-
-if __name__ == "__main__":
-    # Você pode alterar o mês e o ano aqui antes de rodar o script
-    MES = 5
-    ANO = 2026
-    
-    gerar_json(MES, ANO)

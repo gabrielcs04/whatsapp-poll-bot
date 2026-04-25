@@ -31,10 +31,15 @@ def orquestrar():
     mes = pedir_entrada_inteira("-> Qual MÊS você deseja gerar? (Ex: 5 para Maio): ", 1, 12)
     ano = pedir_entrada_inteira("-> Qual ANO você deseja gerar? (Ex: 2026): ", 2000, 2100)
     
+    nome_grupo_input = input("-> Qual o NOME DO GRUPO? (Deixe em branco para usar o padrão 'ARQUIVOS IMPORTANTES'): ").strip()
+    
     print("\n[Orquestrador] -> Iniciando o gerador_config...")
     
     # Chama a função geradora que está no outro arquivo
-    gerar_json(mes, ano)
+    if nome_grupo_input:
+        gerar_json(mes, ano, nome_grupo_input)
+    else:
+        gerar_json(mes, ano)
     
     # 2. Pergunta sobre iniciar o bot
     print("-" * 60)

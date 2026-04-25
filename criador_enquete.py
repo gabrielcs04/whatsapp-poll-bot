@@ -182,6 +182,5 @@ def main():
         page.wait_for_timeout(5000)
         browser_context.close()
 
-
 if __name__ == "__main__":
     main()
