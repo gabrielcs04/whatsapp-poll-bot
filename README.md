@@ -1,49 +1,74 @@
-# Robô de Enquetes - WhatsApp Web
+# 🤖 WhatsApp Poll Bot (Automação de Enquetes)
 
-Este script Python permite a automação no WhatsApp Web para acessar grupos e gerar múltiplas enquetes automaticamente. Ele utiliza a robusta biblioteca [Playwright](https://playwright.dev/python/) para executar simulações de comportamento de digitação e cliques visuais sobre uma instância de navegação que se recusa a perder seu estado de login.
+Um robô construído em Python e [Playwright](https://playwright.dev/python/) projetado para automatizar totalmente o trabalho manual de criar múltiplas enquetes semanais ou mensais em um grupo do WhatsApp Web.
 
-## Requisitos
-- Você precisa ter o Python Instalado (recomendamos a versão > `3.9`).
+## 📌 Visão Geral
 
-## 1. Instalação e Configuração
+O projeto foi criado para ser amigável e modular, evitando que você precise mexer no código o tempo todo. Ele é composto por três etapas interligadas:
 
-*Abra um terminal na pasta onde este projeto se encontra e execute os comandos:*
+1. **O Painel Interativo (`main.py`)**: É o único arquivo que você precisa executar. Ele gerencia as perguntas no terminal e orquestra o fluxo de todo o resto.
+2. **O Gerador Automático (`gerador_config.py`)**: Ele descobre exatamente quais são os finais de semana (e terças-feiras) de um mês e ano específicos, e prepara o cronograma montando tudo em um arquivo `config.json`.
+3. **O Robô (`criador_enquete.py`)**: Usa automação visual na web. Ele abre a interface, resgata a sessão salva do seu WhatsApp, pesquisa o grupo e dispara as enquetes do arquivo de configuração, simulando perfeitamente a digitação humana.
 
-1. Crie seu ambiente virtual (Altamente recomendado):
+---
+
+## 🚀 Requisitos
+
+- Python `3.9` ou superior instalado no seu sistema.
+
+## ⚙️ Instalação Passo a Passo
+
+Abra o seu terminal na pasta do projeto e execute os passos abaixo.
+
+**1. Crie e ative um ambiente virtual** *(Recomendado para não conflitar com outras versões na sua máquina)*
 ```bash
+# No Windows:
 python -m venv venv
-venv\Scripts\activate  # No Windows
+venv\Scripts\activate
+
+# No Mac / Linux:
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-2. Instale o framework:
+**2. Instale as dependências Python**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Instale os Navegadores Nativos acoplados ao Playwright (Obrigatório!):
+**3. Instale o motor do navegador (Playwright)**
+Esse comando fará o download da instância invisível/visível do Chromium (Chrome) para a automação:
 ```bash
 playwright install chromium
 ```
 
-## 2. Como Utilizar o Bot
+---
 
-Abra no seu editor o arquivo central: `main.py`! 
-Lá no topo, estão as configurações. Você deve alterar as opções `NOME_GRUPO` para baterem **idênticas ao nome do grupo que existe no seu Whatsapp**! A caixa baixa e a caixa alta importam.
+## 🎮 Como Usar
 
-Você também pode e **deve** atualizar a const `ENQUETES_JSON` adicionando os títulos e as opções que você quiser para a automações que vão ocorrer.
-
-E então as coisas estão prontas...
-No seu terminal basta rodar:
+Com o ambiente virtual ativado, rode sempre o arquivo principal:
 
 ```bash
 python main.py
 ```
 
-### O Primeiro Login (Aviso de QRCode!)
+O terminal interativo aparecerá:
+1. Responda qual **mês (ex: 5)** e qual **ano (ex: 2026)** você deseja gerar as reuniões.
+2. O arquivo `config.json` será imediatamente atualizado nos bastidores.
+3. Você será perguntado se deseja disparar os envios agora (`S/N`).
 
-Na **primeira vez** que você rodar, um Chrome enorme vai se abrir para a página inicial do WhatsApp Web pedindo o Código Leitor de QR (`WhatsApp >Aparelhos Conectados`).
-1. Faça a leitura confortavelmente;
-2. Espere a barrinha lateral da sua lista de conversas carregar.
-3. Não use a aba paralela enquanto o robô clica e digita para poder visualizar a perfeição e o auto-send.
+### 📱 Lendo o QR Code (Primeiro Login)
 
-Na segunda vez adiante, devido a pasta local que deixamos rodada com o cache ali ("./sessao_whatsapp"), **o script não mais lhe pedirá o leitor de Qr Code**. Vai entrar focado diretamente!
+Na **primeira vez** que você deixar o robô iniciar o navegador, ele chegará na página principal do WhatsApp exigindo o **QR Code**:
+- Use seu celular para ler o código tranquilamente.
+- O robô possui um tempo longo de espera (até 5 min) para reconhecer que você fez o login.
+- Nas execuções futuras, a pasta oculta `sessao_whatsapp` lembrará do seu dispositivo e **não vai pedir** o código novamente. O robô vai disparar no modo expresso!
+
+---
+
+## ⚠️ Configurações Manuais Extras
+
+Se você precisar **mudar o nome exato do grupo** em que o robô deve entrar, basta editar a variável `nome_grupo` dentro do arquivo base ou diretamente no `gerador_config.py` na primeira linha da sua definição:
+`def gerar_json(mes, ano, nome_grupo="ARQUIVOS IMPORTANTES"):`
+
+Aviso: Letras maiúsculas e minúsculas no nome do grupo **importam**.
