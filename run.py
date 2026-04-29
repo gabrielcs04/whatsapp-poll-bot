@@ -5,10 +5,28 @@ import venv
 from pathlib import Path
 
 def print_step(msg):
+    """
+    Imprime mensagens de log formatadas com cor azul clara/ciano no terminal (se suportado).
+    
+    Args:
+        msg (str): A mensagem a ser impressa na tela.
+        
+    Returns:
+        None
+    """
     # Imprime com cor azul clara/ciano no terminal (se suportado)
     print(f"\n\033[1;36m>>> {msg}\033[0m")
 
 def main():
+    """
+    Ponto de entrada do script de inicialização do bot.
+    Garante que um ambiente virtual (.venv) local seja criado, que as dependências 
+    estejam instaladas, que o Chromium do Playwright esteja configurado e, 
+    por fim, inicia o script principal (main.py).
+    
+    Returns:
+        None
+    """
     base_dir = Path(__file__).resolve().parent
     venv_dir = base_dir / "venv"
     

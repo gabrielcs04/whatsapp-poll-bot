@@ -1,12 +1,21 @@
 import json
 from datetime import date, timedelta
-import sys
 
-# =====================================================================
-# GERADOR AUTOMÁTICO DE ENQUETES (CONFIG.JSON)
-# =====================================================================
-
-def gerar_json(mes, ano, nome_grupo="ARQUIVOS IMPORTANTES"):
+def gerar_json(mes, ano, nome_grupo="Acólitos S. João Batista"):
+    """
+    Gera automaticamente as configurações de enquetes (títulos e opções de datas)
+    com base no mês e ano informados, criando o arquivo 'config.json'.
+    Calcula os finais de semana automaticamente partindo do primeiro sábado do mês.
+    
+    Args:
+        mes (int): O mês desejado (1 a 12).
+        ano (int): O ano desejado (ex: 2026).
+        nome_grupo (str, optional): O nome do grupo do WhatsApp onde serão enviadas. 
+                                    Padrão é "Acólitos S. João Batista".
+                                    
+    Returns:
+        None
+    """
     meses_pt = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
                 "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
     
