@@ -9,7 +9,7 @@ O projeto foi criado para ser amigável e modular, evitando que você precise me
 1. **O Painel Interativo (`main.py`)**: É o único arquivo que você precisa executar. Ele gerencia as perguntas no terminal e orquestra o menu principal.
 2. **O Gerador Automático (`gerador_config.py`)**: Ele descobre exatamente quais são os finais de semana (e terças-feiras) de um mês e ano específicos, e prepara o cronograma montando tudo em um arquivo `config.json`.
 3. **O Robô Criador (`criador_enquete.py`)**: Usa automação visual na web. Ele abre a interface, resgata a sessão salva do seu WhatsApp, pesquisa o grupo e dispara as enquetes baseadas no `config.json`.
-4. **O Robô Leitor (`leitor_enquete.py`)**: Acessa a conversa, procura pelas enquetes geradas, abre os detalhes dos votos (navegando automaticamente em telas e sub-telas) e gera um relatório estruturado em `resultados_enquetes.txt`.
+4. **O Robô Leitor (`leitor_enquete.py`)**: Acessa a conversa, procura pelas enquetes geradas, abre os detalhes dos votos (navegando automaticamente em telas e sub-telas) e gera um relatório estruturado em `resultados_enquetes.md`.
 
 ---
 
@@ -35,7 +35,7 @@ Pronto! **Sempre que quiser usar a ferramenta, basta rodar esse mesmo comando.**
 
 Um menu interativo aparecerá com 3 opções principais:
 - **Opção 1:** Gerar e enviar enquetes novas (onde você digita mês, ano e gera o `.json`).
-- **Opção 2:** Ler resultados de enquetes existentes (o robô entrará no grupo e raspará todos os votos para um `.txt`).
+- **Opção 2:** Ler resultados de enquetes existentes (o robô entrará no grupo e raspará todos os votos para um `.md`).
 - **Opção 3:** Sair.
 
 ### 📱 Lendo o QR Code (Primeiro Login)

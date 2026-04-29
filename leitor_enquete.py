@@ -193,30 +193,30 @@ def extrair_dados_do_modal(page, opcoes_esperadas):
 
 def salvar_relatorio(todos_resultados):
     """
-    Formata e salva o relatório final de votos em um arquivo .txt legível.
+    Formata e salva o relatório final de votos em um arquivo .md (Markdown).
     
     Args:
         todos_resultados (dict): Dicionário contendo os dados extraídos de todas as enquetes.
     """
-    print_log("Salvando relatório em resultados_enquetes.txt...")
+    print_log("Salvando relatório em resultados_enquetes.md...")
     try:
-        with open("resultados_enquetes.txt", "w", encoding="utf-8") as f:
-            f.write("=== RELATÓRIO DE ENQUETES ===\n")
-            f.write(f"Gerado em: {time.strftime('%d/%m/%Y %H:%M:%S')}\n\n")
+        with open("resultados_enquetes.md", "w", encoding="utf-8") as f:
+            f.write("# 📊 Relatório de Enquetes\n\n")
+            f.write(f"**Gerado em:** `{time.strftime('%d/%m/%Y %H:%M:%S')}`\n\n")
             
             for titulo, opcoes_votos in todos_resultados.items():
-                f.write(f"--- Enquete: {titulo} ---\n")
+                f.write(f"## 📝 {titulo}\n\n")
                 if not opcoes_votos:
-                    f.write("  Nenhum dado extraído ou enquete sem votos.\n")
+                    f.write("> *Nenhum dado extraído ou enquete sem votos.*\n\n")
                 else:
                     for opcao, votantes in opcoes_votos.items():
-                        f.write(f"  Opção: {opcao}\n")
+                        f.write(f"### 📌 {opcao}\n\n")
                         if not votantes:
-                            f.write("    - Nenhum voto\n")
+                            f.write("- *Nenhum voto*\n\n")
                         else:
                             for votante in votantes:
-                                f.write(f"    - {votante}\n")
-                f.write("\n")
+                                f.write(f"- {votante}\n")
+                        f.write("\n")
         print_log("Relatório salvo com sucesso!")
     except Exception as e:
         print_log(f"[ERRO] Falha ao salvar relatório: {e}")

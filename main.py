@@ -79,7 +79,7 @@ def orquestrar():
     elif opcao == 2:
         print("\n[Orquestrador] -> Iniciando o leitor_enquete.py...")
         subprocess.run([sys.executable, "leitor_enquete.py"])
-        print("\n[Orquestrador] -> Fim da leitura. O arquivo resultados_enquetes.txt foi gerado (ou atualizado) com sucesso.")
+        print("\n[Orquestrador] -> Fim da leitura. O arquivo resultados_enquetes.md foi gerado (ou atualizado) com sucesso.")
         
     elif opcao == 3:
         print("\nEncerrando...")
