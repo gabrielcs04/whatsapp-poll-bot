@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Bot Whatsapp Enquetes
+config.json
+resultados_enquetes.txt
+sessao_whatsapp/
