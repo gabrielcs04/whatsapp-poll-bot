@@ -1,5 +1,8 @@
 import time
 import re
+import os
+import csv
+# pyrefly: ignore [missing-import]
 from playwright.sync_api import sync_playwright
 from whatsapp_utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_configuracoes
 
@@ -93,7 +96,7 @@ def parse_linhas_modal(linhas, opcoes_esperadas):
         if re.search(r'\b(votes|votos)\b', linha.lower()):
             continue
             
-        if re.search(r'\d{2}:\d{2}', linha):
+        if re.search(r'\d{2}:\d{2}', location := linha):
             continue
             
         if re.search(r'^\+\d{2,3}', linha):
@@ -191,35 +194,61 @@ def extrair_dados_do_modal(page, opcoes_esperadas):
         page.keyboard.press("Escape")
         return {}
 
-def salvar_relatorio(todos_resultados):
+def salvar_relatorio(todos_resultados, enquetes_json, mes, ano):
     """
-    Formata e salva o relatório final de votos em um arquivo .md (Markdown).
+    Formata e salva o relatório final de votos em um arquivo CSV.
+    Cada combinação de Enquete + Opção vira uma coluna, e os nomes dos votantes
+    são listados logo abaixo.
     
     Args:
         todos_resultados (dict): Dicionário contendo os dados extraídos de todas as enquetes.
+        enquetes_json (list): Lista de dicionários de enquetes conforme a configuração.
+        mes (int): O mês correspondente.
+        ano (int): O ano correspondente.
     """
-    print_log("Salvando relatório em resultados_enquetes.md...")
+    filename = f"dados/resultados_{ano}_{mes:02d}.csv"
+    print_log(f"Salvando relatório em {filename}...")
     try:
-        with open("resultados_enquetes.md", "w", encoding="utf-8") as f:
-            f.write("# 📊 Relatório de Enquetes\n\n")
-            f.write(f"**Gerado em:** `{time.strftime('%d/%m/%Y %H:%M:%S')}`\n\n")
+        headers = []
+        colunas_votos = {}
+        
+        for enquete in enquetes_json:
+            titulo = enquete["titulo"]
+            opcoes = enquete["opcoes"]
+            dados_enquete = todos_resultados.get(titulo, {})
             
-            for titulo, opcoes_votos in todos_resultados.items():
-                f.write(f"## 📝 {titulo}\n\n")
-                if not opcoes_votos:
-                    f.write("> *Nenhum dado extraído ou enquete sem votos.*\n\n")
+            for opcao in opcoes:
+                col_name = opcao
+                headers.append(col_name)
+                votantes = dados_enquete.get(opcao, [])
+                colunas_votos[col_name] = votantes
+
+        # Determina o máximo de linhas de dados a serem geradas
+        max_linhas = 0
+        for col_name in headers:
+            max_linhas = max(max_linhas, len(colunas_votos[col_name]))
+
+        # Transpõe as colunas de votantes em linhas horizontais para escrita no CSV
+        rows = []
+        for i in range(max_linhas):
+            linha = []
+            for col_name in headers:
+                votantes = colunas_votos[col_name]
+                if i < len(votantes):
+                    linha.append(votantes[i])
                 else:
-                    for opcao, votantes in opcoes_votos.items():
-                        f.write(f"### 📌 {opcao}\n\n")
-                        if not votantes:
-                            f.write("- *Nenhum voto*\n\n")
-                        else:
-                            for votante in votantes:
-                                f.write(f"- {votante}\n")
-                        f.write("\n")
-        print_log("Relatório salvo com sucesso!")
+                    linha.append("")
+            rows.append(linha)
+
+        os.makedirs("dados", exist_ok=True)
+        with open(filename, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(headers)
+            writer.writerows(rows)
+                            
+        print_log(f"Relatório CSV (por colunas) salvo com sucesso em {filename}!")
     except Exception as e:
-        print_log(f"[ERRO] Falha ao salvar relatório: {e}")
+        print_log(f"[ERRO] Falha ao salvar relatório CSV: {e}")
 
 def main():
     """
@@ -258,8 +287,25 @@ def main():
             else:
                 todos_resultados[titulo] = {}
                 
-        # Salva o resultado final no arquivo .txt
-        salvar_relatorio(todos_resultados)
+        # Tenta carregar mês e ano para o nome do arquivo dinâmico
+        import json
+        mes, ano = None, None
+        try:
+            with open('dados/config.json', 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+                mes = config_data.get("mes")
+                ano = config_data.get("ano")
+        except Exception:
+            pass
+            
+        if not mes or not ano:
+            import datetime
+            now = datetime.datetime.now()
+            mes = mes or now.month
+            ano = ano or now.year
+
+        # Salva o resultado final no arquivo .csv
+        salvar_relatorio(todos_resultados, enquetes_json, mes, ano)
         
         print_log("Leitura finalizada! Fechando em 3 segundos...")
         page.wait_for_timeout(3000)

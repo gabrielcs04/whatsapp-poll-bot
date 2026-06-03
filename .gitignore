@@ -220,6 +220,4 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Bot Whatsapp Enquetes
-config.json
-resultados_enquetes.md
-sessao_whatsapp/
+dados/

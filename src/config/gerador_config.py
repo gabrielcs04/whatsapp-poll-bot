@@ -1,10 +1,11 @@
+import os
 import json
 from datetime import date, timedelta
 
 def gerar_json(mes, ano, nome_grupo="Acólitos S. João Batista"):
     """
     Gera automaticamente as configurações de enquetes (títulos e opções de datas)
-    com base no mês e ano informados, criando o arquivo 'config.json'.
+    com base no mês e ano informados, criando o arquivo 'config.json' na pasta 'dados/'.
     Calcula os finais de semana automaticamente partindo do primeiro sábado do mês.
     
     Args:
@@ -57,12 +58,15 @@ def gerar_json(mes, ano, nome_grupo="Acólitos S. João Batista"):
     # Monta o formato JSON final
     config = {
         "nome_grupo": nome_grupo,
+        "mes": mes,
+        "ano": ano,
         "enquetes": enquetes
     }
     
-    # Salva no arquivo config.json
-    with open("config.json", "w", encoding="utf-8") as f:
+    # Salva no arquivo dados/config.json
+    os.makedirs("dados", exist_ok=True)
+    with open("dados/config.json", "w", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
         
-    print(f"[SUCESSO] Arquivo config.json atualizado para as enquetes de {nome_mes} de {ano}!")
+    print(f"[SUCESSO] Arquivo dados/config.json atualizado para as enquetes de {nome_mes} de {ano}!")
     print(f"Foram geradas {semana_num-1} semanas de enquetes.")

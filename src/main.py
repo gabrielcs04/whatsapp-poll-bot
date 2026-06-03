@@ -1,6 +1,7 @@
 import sys
 import subprocess
-from gerador_config import gerar_json
+from pathlib import Path
+from config.gerador_config import gerar_json
 
 def pedir_entrada_inteira(mensagem, minimo, maximo):
     """
@@ -49,6 +50,8 @@ def orquestrar():
     
     opcao = pedir_entrada_inteira("-> Digite a opção desejada: ", 1, 3)
     
+    base_path = Path(__file__).parent
+    
     if opcao == 1:
         print("\nVamos gerar o seu arquivo de configuração (config.json) primeiro.")
         mes = pedir_entrada_inteira("-> Qual MÊS você deseja gerar? (Ex: 5 para Maio): ", 1, 12)
@@ -71,15 +74,15 @@ def orquestrar():
             
         if iniciar_agora == 'S':
             print("\n[Orquestrador] -> Executando o criador_enquete.py...")
-            subprocess.run([sys.executable, "criador_enquete.py"])
+            subprocess.run([sys.executable, str(base_path / "automation" / "criador_enquete.py")])
             print("\n[Orquestrador] -> Fim da execução do robô.")
         else:
             print("\n[Orquestrador] -> Processo finalizado! Você pode rodar o 'criador_enquete.py' manualmente depois.")
-
+ 
     elif opcao == 2:
         print("\n[Orquestrador] -> Iniciando o leitor_enquete.py...")
-        subprocess.run([sys.executable, "leitor_enquete.py"])
-        print("\n[Orquestrador] -> Fim da leitura. O arquivo resultados_enquetes.md foi gerado (ou atualizado) com sucesso.")
+        subprocess.run([sys.executable, str(base_path / "automation" / "leitor_enquete.py")])
+        print("\n[Orquestrador] -> Fim da leitura. O arquivo .csv foi gerado (ou atualizado) com sucesso.")
         
     elif opcao == 3:
         print("\nEncerrando...")

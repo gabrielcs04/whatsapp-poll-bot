@@ -2,14 +2,35 @@
 
 Um robô construído em Python e [Playwright](https://playwright.dev/python/) projetado para automatizar totalmente o trabalho manual de criar múltiplas enquetes semanais/mensais em um grupo do WhatsApp Web e também extrair os resultados (votos) dessas enquetes de forma estruturada.
 
-## 📌 Visão Geral
+## 📌 Visão Geral e Estrutura
 
-O projeto foi criado para ser amigável e modular, evitando que você precise mexer no código o tempo todo. Ele é composto por quatro scripts centrais e utilitários:
+O projeto é organizado de forma limpa e de modo a separar o código-fonte dos dados do usuário:
 
-1. **O Painel Interativo (`main.py`)**: É o único arquivo que você precisa executar. Ele gerencia as perguntas no terminal e orquestra o menu principal.
-2. **O Gerador Automático (`gerador_config.py`)**: Ele descobre exatamente quais são os finais de semana (e terças-feiras) de um mês e ano específicos, e prepara o cronograma montando tudo em um arquivo `config.json`.
-3. **O Robô Criador (`criador_enquete.py`)**: Usa automação visual na web. Ele abre a interface, resgata a sessão salva do seu WhatsApp, pesquisa o grupo e dispara as enquetes baseadas no `config.json`.
-4. **O Robô Leitor (`leitor_enquete.py`)**: Acessa a conversa, procura pelas enquetes geradas, abre os detalhes dos votos (navegando automaticamente em telas e sub-telas) e gera um relatório estruturado em `resultados_enquetes.md`.
+```text
+WhatsappBotEnquete/
+├── dados/
+│   ├── config.json                     # Cronograma das enquetes gerado automaticamente
+│   ├── resultados_ANO_MES.csv          # Relatório final dos votos extraídos (ex: resultados_2026_06.csv)
+│   └── sessao_whatsapp/                 # Credenciais de sessão do WhatsApp (evita novo QR Code)
+├── src/
+│   ├── main.py                          # Painel interativo / Orquestrador principal
+│   ├── config/
+│   │   └── gerador_config.py            # Script para calcular datas e gerar o config.json
+│   └── automation/
+│       ├── criador_enquete.py           # Robô que cria enquetes usando o Playwright
+│       ├── leitor_enquete.py            # Robô que extrai votos das enquetes
+│       └── whatsapp_utils.py            # Funções utilitárias e de conexão com o WhatsApp
+├── venv/                                # Ambiente virtual Python
+├── requirements.txt                     # Lista de dependências do projeto
+├── run.py                               # Script de inicialização rápida
+└── README.md                            # Esta documentação
+```
+
+### Componentes de Código:
+1. **O Painel Interativo ([src/main.py](./src/main.py))**: Gerencia a interface no terminal e chama as automações.
+2. **O Gerador Automático ([src/config/gerador_config.py](./src/config/gerador_config.py))**: Descobre os finais de semana (e terças-feiras) de um mês/ano e escreve em `dados/config.json`.
+3. **O Robô Criador ([src/automation/criador_enquete.py](./src/automation/criador_enquete.py))**: Lê `dados/config.json` e envia as enquetes no grupo do WhatsApp Web.
+4. **O Robô Leitor ([src/automation/leitor_enquete.py](./src/automation/leitor_enquete.py))**: Acessa a conversa, raspa os votos e gera um relatório em formato CSV (`dados/resultados_ANO_MES.csv`), organizando cada horário planejado como uma coluna e listando as pessoas respondentes logo abaixo.
 
 ---
 
@@ -19,9 +40,9 @@ O projeto foi criado para ser amigável e modular, evitando que você precise me
 
 ## ⚙️ Como Instalar e Rodar (Modo Simplificado)
 
-Nós simplificamos todo o processo. Você não precisa mais criar e gerenciar o ambiente virtual manualmente ou baixar os navegadores por conta própria! 
+Configuramos o projeto para fazer toda a preparação do ambiente virtual, instalação de dependências e configuração do navegador Playwright de forma automática e rápida.
 
-Basta abrir o seu terminal na pasta do projeto e rodar o comando de inicialização automática. Ele fará a configuração da `venv`, instalação de dependências, download do navegador da automação e já iniciará o painel:
+Basta abrir o seu terminal na pasta raiz do projeto e rodar o comando:
 
 ```bash
 # No Windows
@@ -31,25 +52,26 @@ python run.py
 python3 run.py
 ```
 
-Pronto! **Sempre que quiser usar a ferramenta, basta rodar esse mesmo comando.** O script é inteligente e só instalará as dependências se for a primeira vez. Assim que o painel abrir:
+O script é inteligente e utiliza cache local: ele só instalará as dependências caso detecte modificações no arquivo `requirements.txt` ou se a pasta `venv` for excluída, tornando a inicialização do dia a dia quase instantânea.
 
-Um menu interativo aparecerá com 3 opções principais:
-- **Opção 1:** Gerar e enviar enquetes novas (onde você digita mês, ano e gera o `.json`).
-- **Opção 2:** Ler resultados de enquetes existentes (o robô entrará no grupo e raspará todos os votos para um `.md`).
-- **Opção 3:** Sair.
+Assim que o painel abrir:
+- **Opção 1:** Gera configurações no arquivo `dados/config.json` e envia as enquetes.
+- **Opção 2:** Lê as enquetes do WhatsApp e gera o relatório CSV (`dados/resultados_ANO_MES.csv`) onde as opções das enquetes são dispostas em colunas horizontais, contendo a lista de votantes correspondentes abaixo de cada uma.
+- **Opção 3:** Encerra a aplicação.
 
 ### 📱 Lendo o QR Code (Primeiro Login)
 
-Na **primeira vez** que você deixar o robô iniciar o navegador, ele chegará na página principal do WhatsApp exigindo o **QR Code**:
-- Use seu celular para ler o código tranquilamente.
-- O robô possui um tempo longo de espera (até 5 min) para reconhecer que você fez o login.
-- Nas execuções futuras, a pasta oculta `sessao_whatsapp` lembrará do seu dispositivo e **não vai pedir** o código novamente. O robô vai disparar no modo expresso!
+Na **primeira vez** que o robô iniciar o navegador, ele carregará o WhatsApp Web exibindo o **QR Code**:
+- Escaneie o código usando seu celular.
+- O robô aguardará até 5 minutos pela leitura da autenticação.
+- Nas execuções futuras, a sessão persistente será guardada na pasta `dados/sessao_whatsapp` e o robô conectará **sem pedir QR Code** novamente (caso a sessão expire ou o WhatsApp desconecte, basta escanear o QR Code de novo que a automação aguardará o login normalmente).
 
 ---
 
 ## ⚠️ Configurações Manuais Extras
 
-Se você precisar **mudar o nome exato do grupo** em que o robô deve entrar, você poderá informar isso diretamente no menu. Porém, se quiser mudar o valor padrão (caso o usuário aperte "Enter" direto), basta editar a variável `nome_grupo` dentro do arquivo `gerador_config.py` na primeira linha da sua definição:
+Se você precisar alterar o nome padrão do grupo do WhatsApp que o bot busca ao apertar "Enter" direto no painel, edite o valor padrão do parâmetro `nome_grupo` na assinatura da função `gerar_json` dentro de [gerador_config.py](./src/config/gerador_config.py):
 `def gerar_json(mes, ano, nome_grupo="Acólitos S. João Batista"):`
 
-Aviso: Letras maiúsculas e minúsculas no nome do grupo **importam**.
+> [!IMPORTANT]
+> Letras maiúsculas, minúsculas, pontuações e acentos no nome do grupo **devem coincidir exatamente** com o nome do grupo no seu WhatsApp.

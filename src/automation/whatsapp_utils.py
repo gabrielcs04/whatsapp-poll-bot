@@ -2,7 +2,7 @@ import os
 import time
 import json
 
-SESSAO_DIR = "./sessao_whatsapp"
+SESSAO_DIR = "dados/sessao_whatsapp"
 
 def print_log(mensagem):
     """
@@ -16,20 +16,20 @@ def print_log(mensagem):
 
 def carregar_configuracoes():
     """
-    Lê o arquivo 'config.json' e retorna as configurações globais do projeto.
+    Lê o arquivo 'dados/config.json' e retorna as configurações globais do projeto.
     
     Returns:
         tuple: (nome_grupo, enquetes_json) contendo o nome do grupo como string 
                e as enquetes como uma lista de dicionários.
     """
     try:
-        with open('config.json', 'r', encoding='utf-8') as f:
+        with open('dados/config.json', 'r', encoding='utf-8') as f:
             config_data = json.load(f)
             nome_grupo = config_data.get("nome_grupo", "")
             enquetes_json = config_data.get("enquetes", [])
             return nome_grupo, enquetes_json
     except FileNotFoundError:
-        print_log("[ERRO] Arquivo config.json não encontrado!")
+        print_log("[ERRO] Arquivo dados/config.json não encontrado!")
         return "", []
 
 def iniciar_navegador(playwright_context):
