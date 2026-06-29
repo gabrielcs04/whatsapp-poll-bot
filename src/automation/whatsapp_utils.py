@@ -76,7 +76,7 @@ def abrir_whatsapp_e_aguardar_login(page):
     
     try:
         # A barra de buscar os contatos no painel esquerdo indica que o aplicativo abriu integralmente.
-        page.wait_for_selector('div[dir="ltr"]', timeout=300000) # Até 5 min parado aqui.
+        page.wait_for_selector('div[dir="ltr"]', timeout=600000) # Até 10 min parado aqui.
         print_log("Login no painel do Web concluído e carregado com sucesso!")
         page.wait_for_timeout(5000) # Pausa pra digerir carregamento dos contatos
         return True
