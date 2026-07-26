@@ -1,8 +1,12 @@
 import os
 import time
 import json
+from pathlib import Path
 
-SESSAO_DIR = "dados/sessao_whatsapp"
+# Raiz do projeto: whatsapp_utils.py está em src/automation/, então sobe 2 níveis
+_RAIZ_PROJETO = Path(__file__).resolve().parent.parent.parent
+SESSAO_DIR = str(_RAIZ_PROJETO / "dados" / "sessao_whatsapp")
+CONFIG_PATH = str(_RAIZ_PROJETO / "dados" / "config.json")
 
 def print_log(mensagem):
     """
@@ -23,18 +27,19 @@ def carregar_configuracoes():
                e as enquetes como uma lista de dicionários.
     """
     try:
-        with open('dados/config.json', 'r', encoding='utf-8') as f:
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
             config_data = json.load(f)
             nome_grupo = config_data.get("nome_grupo", "")
             enquetes_json = config_data.get("enquetes", [])
             return nome_grupo, enquetes_json
     except FileNotFoundError:
-        print_log("[ERRO] Arquivo dados/config.json não encontrado!")
+        print_log(f"[ERRO] Arquivo de configuração não encontrado: {CONFIG_PATH}")
         return "", []
 
 def iniciar_navegador(playwright_context):
     """
     Inicia o navegador Chromium usando contexto persistente para retenção do login.
+    O navegador é iniciado em inglês para garantir compatibilidade dos seletores aria-label.
     
     Args:
         playwright_context (PlaywrightContextManager): Contexto do Playwright.
@@ -48,8 +53,15 @@ def iniciar_navegador(playwright_context):
 
     browser_context = playwright_context.chromium.launch_persistent_context(
         user_data_dir=SESSAO_DIR,
-        headless=False, # Precisamos ver o navegador
-        args=["--no-sandbox", "--disable-setuid-sandbox", "--start-maximized"],
+        headless=False,  # Precisamos ver o navegador
+        locale="en-US",  # Força idioma inglês para garantir compatibilidade dos seletores
+        timezone_id="America/Sao_Paulo",
+        args=[
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--start-maximized",
+            "--lang=en-US",  # Força idioma do Chrome em inglês
+        ],
         no_viewport=True
     )
     
@@ -60,8 +72,13 @@ def iniciar_navegador(playwright_context):
 
 def abrir_whatsapp_e_aguardar_login(page):
     """
-    Acessa a página principal do WhatsApp Web e aguarda o carregamento global da lista de chats,
+    Acessa a página principal do WhatsApp Web e aguarda o carregamento do painel principal,
     comprovando que o usuário está corretamente autenticado.
+
+    A lógica de espera é feita em duas etapas:
+    1. Aguarda até 30s para saber se já há sessão salva (painel carrega direto) 
+       ou se é necessário escanear o QR code.
+    2. Se precisar de QR, aguarda até 10 minutos para o painel carregar após o scan.
     
     Args:
         page (Page): Instância da página do Playwright.
@@ -72,16 +89,47 @@ def abrir_whatsapp_e_aguardar_login(page):
     print_log("Acessando o WhatsApp Web.")
     page.goto('https://web.whatsapp.com/', wait_until='domcontentloaded')
     
-    print_log("Favor realizar a leitura do QR Code pelo seu celular (caso já esteja logado, só aguardar!)...")
-    
+    # Seletor confiável: #pane-side é o painel esquerdo com a lista de conversas,
+    # que SÓ aparece quando o usuário está completamente logado.
+    SELETOR_PAINEL_LOGADO = '#pane-side'
+    # Seletor do canvas do QR code (aparece quando não há sessão salva)
+    SELETOR_QR_CODE = 'canvas[aria-label="Scan me!"]'
+
     try:
-        # A barra de buscar os contatos no painel esquerdo indica que o aplicativo abriu integralmente.
-        page.wait_for_selector('div[dir="ltr"]', timeout=600000) # Até 10 min parado aqui.
-        print_log("Login no painel do Web concluído e carregado com sucesso!")
-        page.wait_for_timeout(5000) # Pausa pra digerir carregamento dos contatos
-        return True
-    except Exception:
-        print_log("Demora excessiva em aguardar o painel ou encerramento manual da página. Script abortado.")
+        # Etapa 1: Em até 30s, detecta se há sessão salva ou se precisa de QR
+        print_log("Verificando estado da sessão...")
+        ja_logado = False
+        try:
+            page.wait_for_selector(SELETOR_PAINEL_LOGADO, timeout=30000)
+            ja_logado = True
+        except Exception:
+            pass  # Não logou em 30s, pode ser que o QR apareceu
+
+        if ja_logado:
+            print_log("Sessão encontrada! Login automático realizado com sucesso.")
+            page.wait_for_timeout(3000)  # Pausa para carregar contatos
+            return True
+
+        # Etapa 2: Verifica se o QR code apareceu para ser escaneado
+        print_log("Nenhuma sessão salva detectada. Aguardando leitura do QR Code...")
+        try:
+            page.wait_for_selector(SELETOR_QR_CODE, timeout=15000)
+            print_log("QR Code visível! Por favor, escaneie com o seu celular.")
+        except Exception:
+            print_log("QR Code não detectado. Aguardando o painel carregar de qualquer forma...")
+
+        # Etapa 3: Aguarda até 10 minutos pelo painel principal (após scan do QR)
+        try:
+            page.wait_for_selector(SELETOR_PAINEL_LOGADO, timeout=600000)
+            print_log("Login no painel do WhatsApp Web concluído e carregado com sucesso!")
+            page.wait_for_timeout(5000)  # Pausa para digerir carregamento dos contatos
+            return True
+        except Exception:
+            print_log("Demora excessiva ao aguardar o painel. Script abortado.")
+            return False
+
+    except Exception as e:
+        print_log(f"Erro inesperado durante o login: {e}. Script abortado.")
         return False
 
 def localizar_e_acessar_conversa(page, nome_grupo):
