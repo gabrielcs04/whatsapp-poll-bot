@@ -64,129 +64,117 @@ def encontrar_enquete_e_abrir_votos(page, titulo):
         print_log(f"[ERRO] Falha ao tentar abrir votos da enquete '{titulo}': {e}")
         return False
 
-def parse_linhas_modal(linhas, opcoes_esperadas):
-    """
-    Recebe as linhas de texto bruto extraídas do modal e as limpa usando Regex,
-    retornando um dicionário estruturado com os votantes de cada opção.
-    
-    Args:
-        linhas (list): Lista de strings com o texto puro do modal.
-        opcoes_esperadas (list): Lista de opções conhecidas da enquete.
-        
-    Returns:
-        dict: Dicionário no formato {opcao: [votante1, votante2, ...]}
-    """
-    resultados = {opcao: [] for opcao in opcoes_esperadas}
-    opcao_atual = None
-    
-    for linha in linhas:
-        linha = linha.strip()
-        if not linha: continue
-        
-        if linha.lower() in ["poll details", "detalhes da enquete", "view votes", "ver votos", "close", "fechar", "back", "voltar"]:
-            continue
-            
-        if linha in opcoes_esperadas:
-            opcao_atual = linha
-            continue
-            
-        if re.search(r'see all|ver tod', linha.lower()):
-            continue
-            
-        if re.search(r'\b(votes|votos)\b', linha.lower()):
-            continue
-            
-        if re.search(r'\d{2}:\d{2}', location := linha):
-            continue
-            
-        if re.search(r'^\+\d{2,3}', linha):
-            continue
-            
-        if linha.isdigit():
-            continue
-            
-        if opcao_atual and len(linha) > 1:
-            if linha not in resultados[opcao_atual]:
-                resultados[opcao_atual].append(linha)
-                
-    return resultados
-
 def extrair_dados_do_modal(page, opcoes_esperadas):
     """
-    Responsável por extrair todos os dados de votantes de dentro do modal aberto,
-    navegando pelas sub-telas de opções (clicando em "See all") quando necessário.
-    
+    Extrai votos do modal de detalhes de enquete, iterando por cada container de opção
+    (data-testid="poll-details-option-N") e lendo os nomes de votantes a partir do
+    atributo `title` dos elementos span[dir="auto"] dentro de cell-frame-title.
+
+    Lógica:
+    - Cada opção da enquete tem seu próprio div container com data-testid="poll-details-option-N".
+    - O nome da opção está em span[data-testid="selectable-text"] dentro do container.
+    - Os votantes estão em div[data-testid="cell-frame-title"] span[dir="auto"] (atributo title).
+    - O botão "See all" só aparece DENTRO do container de uma opção quando há mais votantes
+      do que os exibidos. Opções com poucos votos simplesmente não têm esse botão — e isso
+      é o comportamento esperado, não um erro.
+
     Args:
         page (Page): Instância da página do Playwright.
         opcoes_esperadas (list): Lista de opções contendo os textos base da enquete.
-        
+
     Returns:
-        dict: Dicionário compilado e finalizado com todos os votantes limpos.
+        dict: Dicionário no formato {opcao: [votante1, votante2, ...]}
     """
     print_log("Extraindo dados do modal de votos...")
+    resultados = {opcao: [] for opcao in opcoes_esperadas}
     try:
         modal = page.locator('div[data-testid="poll-details-drawer"]').first
         if not modal.is_visible():
             modal = page.locator('div[role="dialog"]').first
         modal.wait_for(state="visible", timeout=10000)
-        
-        # 1. Extrai da tela principal primeiro (garante pegar opções que não têm "See all")
-        texto_puro = modal.inner_text()
-        resultados = parse_linhas_modal(texto_puro.split('\n'), opcoes_esperadas)
-        
-        # 2. Verifica se existem botões "See all"
-        qtd_botoes = modal.locator('text=/See all|Ver tod/i').count()
-        
-        # 3. Itera sobre cada botão "See all" navegando para a sub-tela e voltando
-        for i in range(qtd_botoes):
-            botoes = modal.locator('text=/See all|Ver tod/i')
-            if i < botoes.count():
+
+        # Conta quantas opções existem no modal (poll-details-option-0, -1, -2, ...)
+        qtd_opcoes = modal.locator('div[data-testid^="poll-details-option-"]').count()
+        print_log(f"Encontradas {qtd_opcoes} opção(ões) no modal.")
+
+        for i in range(qtd_opcoes):
+            # Re-localiza o container a cada iteração para evitar referências stale ao DOM
+            opcao_div = modal.locator('div[data-testid^="poll-details-option-"]').nth(i)
+
+            # Lê o nome da opção a partir do elemento estrutural span[data-testid="selectable-text"]
+            try:
+                nome_opcao = opcao_div.locator('span[data-testid="selectable-text"]').first.inner_text().strip()
+            except Exception as e:
+                print_log(f"[AVISO] Não foi possível ler o nome da opção #{i}: {e}")
+                continue
+
+            if nome_opcao not in resultados:
+                print_log(f"[AVISO] Opção '{nome_opcao}' não está entre as esperadas, ignorando.")
+                continue
+
+            print_log(f"Processando opção: '{nome_opcao}'")
+
+            # Verifica se existe botão "See all" DENTRO deste container de opção específico.
+            # Esse botão SÓ existe quando há mais votantes do que os exibidos na tela principal.
+            # Para opções com poucos votos, o botão simplesmente não existe — isso é correto.
+            botao_see_all = opcao_div.locator('button').filter(
+                has_text=re.compile(r'See all|Ver tod', re.IGNORECASE)
+            )
+
+            if botao_see_all.count() > 0 and botao_see_all.first.is_visible():
+                # --- Opção com muitos votos: abre sub-tela expandida ---
                 try:
-                    botoes.nth(i).click(timeout=2000)
-                    page.wait_for_timeout(1500) # Aguarda animação de slide da sub-tela
-                    
-                    texto_sub = modal.inner_text()
-                    resultados_sub = parse_linhas_modal(texto_sub.split('\n'), opcoes_esperadas)
-                    
-                    # Atualiza o dicionário principal com os dados completos da sub-tela
-                    for opc, votantes in resultados_sub.items():
-                        if votantes:
-                            # Junta as listas evitando duplicatas
-                            for v in votantes:
-                                if v not in resultados[opc]:
-                                    resultados[opc].append(v)
-                                    
-                    # Voltar para a tela principal do modal
+                    botao_see_all.first.click(timeout=3000)
+                    page.wait_for_timeout(1500)  # Aguarda animação de abertura da sub-tela
+
+                    # Na sub-tela expandida, todos os votantes aparecem em cell-frame-title
+                    nomes_els = modal.locator('div[data-testid="cell-frame-title"] span[dir="auto"]')
+                    for j in range(nomes_els.count()):
+                        try:
+                            nome = nomes_els.nth(j).get_attribute("title") or nomes_els.nth(j).inner_text()
+                            nome = nome.strip()
+                            if nome and nome not in resultados[nome_opcao]:
+                                resultados[nome_opcao].append(nome)
+                        except Exception:
+                            pass
+
+                    # Volta para a tela principal do modal
                     botao_voltar = modal.locator('span[data-icon="back"], span[data-icon="arrow-left"]').first
                     if not botao_voltar.is_visible():
                         botao_voltar = modal.locator('button[aria-label="Back"], button[aria-label="Voltar"]').first
-                        
                     if not botao_voltar.is_visible():
-                        # O primeiro botão do drawer costuma ser o de voltar
                         botao_voltar = modal.locator('button').first
-                        
                     botao_voltar.click()
-                    page.wait_for_timeout(1500) # Aguarda animação de volta
-                    
+                    page.wait_for_timeout(1500)  # Aguarda animação de retorno
+
                 except Exception as e:
-                    print_log(f"[AVISO] Erro ao navegar na sub-tela da opção: {e}")
-                    # Se der erro, tenta garantir que apertamos voltar para não quebrar a próxima
+                    print_log(f"[AVISO] Erro ao expandir 'See all' para '{nome_opcao}': {e}")
                     try:
                         modal.locator('button').first.click(timeout=1000)
-                    except:
+                    except Exception:
                         pass
                     page.wait_for_timeout(1000)
-                    
+
+            else:
+                # --- Opção com poucos votos: lê diretamente do container da opção ---
+                nomes_els = opcao_div.locator('div[data-testid="cell-frame-title"] span[dir="auto"]')
+                for j in range(nomes_els.count()):
+                    try:
+                        nome = nomes_els.nth(j).get_attribute("title") or nomes_els.nth(j).inner_text()
+                        nome = nome.strip()
+                        if nome and nome not in resultados[nome_opcao]:
+                            resultados[nome_opcao].append(nome)
+                    except Exception:
+                        pass
+
         # Fecha o modal
         botao_fechar = modal.locator('span[data-icon="x"]').first
         if not botao_fechar.is_visible():
             botao_fechar = modal.locator('button[aria-label="Close"], button[aria-label="Fechar"]').first
-            
         if botao_fechar.is_visible():
             botao_fechar.click()
         else:
             page.keyboard.press("Escape")
-            
         page.wait_for_timeout(1000)
         return resultados
     except Exception as e:
