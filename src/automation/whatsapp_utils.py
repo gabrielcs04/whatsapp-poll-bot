@@ -70,6 +70,25 @@ def iniciar_navegador(playwright_context):
     
     return browser_context, page
 
+def fechar_banner_novidades(page):
+    """
+    Verifica se o WhatsApp exibiu um banner de novidades após o login e,
+    caso esteja presente, fecha-o clicando no botão de fechar (aria-label="Close").
+
+    Args:
+        page (Page): Instância da página do Playwright.
+    """
+    SELETOR_BANNER_FECHAR = 'button[aria-label="Close"]'
+    try:
+        botao_fechar = page.locator(SELETOR_BANNER_FECHAR).first
+        botao_fechar.wait_for(state="visible", timeout=5000)
+        botao_fechar.click()
+        print_log("Banner de novidades detectado e fechado.")
+        page.wait_for_timeout(1000)  # Pequena pausa após fechar o banner
+    except Exception:
+        pass  # Banner não apareceu, segue normalmente
+
+
 def abrir_whatsapp_e_aguardar_login(page):
     """
     Acessa a página principal do WhatsApp Web e aguarda o carregamento do painel principal,
@@ -108,6 +127,7 @@ def abrir_whatsapp_e_aguardar_login(page):
         if ja_logado:
             print_log("Sessão encontrada! Login automático realizado com sucesso.")
             page.wait_for_timeout(3000)  # Pausa para carregar contatos
+            fechar_banner_novidades(page)
             return True
 
         # Etapa 2: Verifica se o QR code apareceu para ser escaneado
@@ -123,6 +143,7 @@ def abrir_whatsapp_e_aguardar_login(page):
             page.wait_for_selector(SELETOR_PAINEL_LOGADO, timeout=600000)
             print_log("Login no painel do WhatsApp Web concluído e carregado com sucesso!")
             page.wait_for_timeout(5000)  # Pausa para digerir carregamento dos contatos
+            fechar_banner_novidades(page)
             return True
         except Exception:
             print_log("Demora excessiva ao aguardar o painel. Script abortado.")
