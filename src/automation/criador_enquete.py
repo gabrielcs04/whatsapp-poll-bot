@@ -1,6 +1,6 @@
 # pyrefly: ignore [missing-import]
 from playwright.sync_api import sync_playwright
-from whatsapp_utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_configuracoes
+from whatsapp_utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_enquetes
 
 def criar_uma_enquete(page, titulo, opcoes):
     """
@@ -66,9 +66,9 @@ def main():
     """
     print_log("Iniciando Automação do WhatsApp Web via Playwright...")
     
-    nome_grupo, enquetes_json = carregar_configuracoes()
-    if not nome_grupo or not enquetes_json:
-        print_log("[ERRO] Configurações inválidas ou vazias. Abortando criação.")
+    nome_grupo, enquetes = carregar_enquetes()
+    if not nome_grupo or not enquetes:
+        print_log("[ERRO] Enquetes inválidas ou vazias. Abortando criação.")
         return
         
     with sync_playwright() as p:
@@ -88,7 +88,7 @@ def main():
             return
             
         # Passo 4: Executar loop de inserção de múltiplas tarefas (Enquetes)
-        for enquete in enquetes_json:
+        for enquete in enquetes:
             criar_uma_enquete(page, enquete['titulo'], enquete['opcoes'])
 
         # Passo Fim

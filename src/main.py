@@ -31,10 +31,50 @@ def pedir_entrada_inteira(mensagem, minimo, maximo):
         except ValueError:
             print("[!] Entrada inválida. Digite apenas números.")
 
+def gerar_enquetes():
+    """
+    Solicita mês, ano e nome do grupo ao usuário, e executa a geração das enquetes,
+    salvando o resultado em 'dados/enquetes.json'.
+    Não realiza nenhum envio pelo WhatsApp.
+    
+    Returns:
+        None
+    """
+    print("\nVamos gerar as enquetes para o mês desejado.")
+    mes = pedir_entrada_inteira("-> Qual MÊS você deseja gerar? (Ex: 5 para Maio): ", 1, 12)
+    ano = pedir_entrada_inteira("-> Qual ANO você deseja gerar? (Ex: 2026): ", 2000, 2100)
+    
+    nome_grupo_input = input("-> Qual o NOME DO GRUPO? (Deixe em branco para usar o padrão 'Acólitos S. João Batista'): ").strip()
+    
+    print("\n[Orquestrador] -> Iniciando a geração das enquetes...")
+    if nome_grupo_input:
+        gerar_json(mes, ano, nome_grupo_input)
+    else:
+        gerar_json(mes, ano)
+    
+    print("\n[Orquestrador] -> Enquetes geradas com sucesso em 'dados/enquetes.json'.")
+    print("[Orquestrador] -> Revise o arquivo e use a opção 2 para enviar pelo WhatsApp.")
+
+def enviar_enquetes(base_path):
+    """
+    Lê as enquetes já geradas em 'dados/enquetes.json' e executa o envio
+    pelo WhatsApp via automação do navegador.
+    Não gera novas enquetes.
+    
+    Args:
+        base_path (Path): Caminho base do diretório 'src/'.
+        
+    Returns:
+        None
+    """
+    print("\n[Orquestrador] -> Executando o envio das enquetes pelo WhatsApp...")
+    subprocess.run([sys.executable, str(base_path / "automation" / "criador_enquete.py")])
+    print("\n[Orquestrador] -> Fim da execução do robô.")
+
 def orquestrar():
     """
-    Função principal que exibe o menu interativo e orquestra a execução dos sub-scripts
-    (criador e leitor de enquetes) utilizando a biblioteca subprocess.
+    Função principal que exibe o menu interativo e orquestra a execução das etapas
+    de geração e envio de enquetes, além da leitura de resultados.
     
     Returns:
         None
@@ -43,50 +83,33 @@ def orquestrar():
     print(" BEM-VINDO AO ORQUESTRADOR DE ENQUETES DO WHATSAPP")
     print("="*60)
     
-    print("\nEscolha uma opção:")
-    print("1 - Gerar novas enquetes e enviar no WhatsApp")
-    print("2 - Ler resultados de enquetes existentes")
-    print("3 - Sair")
-    
-    opcao = pedir_entrada_inteira("-> Digite a opção desejada: ", 1, 3)
-    
     base_path = Path(__file__).parent
     
-    if opcao == 1:
-        print("\nVamos gerar o seu arquivo de configuração (config.json) primeiro.")
-        mes = pedir_entrada_inteira("-> Qual MÊS você deseja gerar? (Ex: 5 para Maio): ", 1, 12)
-        ano = pedir_entrada_inteira("-> Qual ANO você deseja gerar? (Ex: 2026): ", 2000, 2100)
+    while True:
+        print("\n+--------------------------------------------------------+")
+        print("|  Escolha uma opção:                                    |")
+        print("|    1 - Gerar novas enquetes                            |")
+        print("|    2 - Enviar as enquetes existentes pelo WhatsApp     |")
+        print("|    3 - Ler resultados de enquetes existentes           |")
+        print("|    4 - Sair                                            |")
+        print("+--------------------------------------------------------+")
         
-        nome_grupo_input = input("-> Qual o NOME DO GRUPO? (Deixe em branco para usar o padrão 'Acólitos S. João Batista'): ").strip()
+        opcao = pedir_entrada_inteira("-> Digite a opção desejada: ", 1, 4)
         
-        print("\n[Orquestrador] -> Iniciando o gerador_config...")
-        if nome_grupo_input:
-            gerar_json(mes, ano, nome_grupo_input)
-        else:
-            gerar_json(mes, ano)
-        
-        print("-" * 60)
-        while True:
-            iniciar_agora = input("As configurações estão prontas! Deseja abrir o navegador e enviar as enquetes AGORA? (S/N): ").strip().upper()
-            if iniciar_agora in ['S', 'N']:
-                break
-            print("Digite apenas 'S' para sim ou 'N' para não.")
+        if opcao == 1:
+            gerar_enquetes()
             
-        if iniciar_agora == 'S':
-            print("\n[Orquestrador] -> Executando o criador_enquete.py...")
-            subprocess.run([sys.executable, str(base_path / "automation" / "criador_enquete.py")])
-            print("\n[Orquestrador] -> Fim da execução do robô.")
-        else:
-            print("\n[Orquestrador] -> Processo finalizado! Você pode rodar o 'criador_enquete.py' manualmente depois.")
- 
-    elif opcao == 2:
-        print("\n[Orquestrador] -> Iniciando o leitor_enquete.py...")
-        subprocess.run([sys.executable, str(base_path / "automation" / "leitor_enquete.py")])
-        print("\n[Orquestrador] -> Fim da leitura. O arquivo .csv foi gerado (ou atualizado) com sucesso.")
-        
-    elif opcao == 3:
-        print("\nEncerrando...")
-        sys.exit(0)
+        elif opcao == 2:
+            enviar_enquetes(base_path)
+
+        elif opcao == 3:
+            print("\n[Orquestrador] -> Iniciando o leitor_enquete.py...")
+            subprocess.run([sys.executable, str(base_path / "automation" / "leitor_enquete.py")])
+            print("\n[Orquestrador] -> Fim da leitura. O arquivo .csv foi gerado (ou atualizado) com sucesso.")
+            
+        elif opcao == 4:
+            print("\nEncerrando...")
+            sys.exit(0)
 
 if __name__ == "__main__":
     orquestrar()

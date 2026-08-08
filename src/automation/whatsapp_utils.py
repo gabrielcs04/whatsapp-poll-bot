@@ -6,7 +6,7 @@ from pathlib import Path
 # Raiz do projeto: whatsapp_utils.py está em src/automation/, então sobe 2 níveis
 _RAIZ_PROJETO = Path(__file__).resolve().parent.parent.parent
 SESSAO_DIR = str(_RAIZ_PROJETO / "dados" / "sessao_whatsapp")
-CONFIG_PATH = str(_RAIZ_PROJETO / "dados" / "config.json")
+ENQUETES_PATH = str(_RAIZ_PROJETO / "dados" / "enquetes.json")
 
 def print_log(mensagem):
     """
@@ -18,22 +18,22 @@ def print_log(mensagem):
     horario = time.strftime('%H:%M:%S')
     print(f"[{horario}] {mensagem}")
 
-def carregar_configuracoes():
+def carregar_enquetes():
     """
-    Lê o arquivo 'dados/config.json' e retorna as configurações globais do projeto.
+    Lê o arquivo 'dados/enquetes.json' e retorna os dados das enquetes geradas.
     
     Returns:
-        tuple: (nome_grupo, enquetes_json) contendo o nome do grupo como string 
+        tuple: (nome_grupo, enquetes) contendo o nome do grupo como string 
                e as enquetes como uma lista de dicionários.
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config_data = json.load(f)
-            nome_grupo = config_data.get("nome_grupo", "")
-            enquetes_json = config_data.get("enquetes", [])
-            return nome_grupo, enquetes_json
+        with open(ENQUETES_PATH, 'r', encoding='utf-8') as f:
+            enquetes_data = json.load(f)
+            nome_grupo = enquetes_data.get("nome_grupo", "")
+            enquetes = enquetes_data.get("enquetes", [])
+            return nome_grupo, enquetes
     except FileNotFoundError:
-        print_log(f"[ERRO] Arquivo de configuração não encontrado: {CONFIG_PATH}")
+        print_log(f"[ERRO] Arquivo de enquetes não encontrado: {ENQUETES_PATH}")
         return "", []
 
 def iniciar_navegador(playwright_context):

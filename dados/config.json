@@ -1,0 +1,36 @@
+{
+  "dias": {
+    "sabado": {
+      "horarios": [
+        "18:00"
+      ]
+    },
+    "domingo": {
+      "horarios": [
+        "07:30",
+        "09:30",
+        "18:00"
+      ]
+    },
+    "terca": {
+      "horarios": [
+        "19:00"
+      ]
+    },
+    "quarta": {
+      "horarios": [
+        "19:00"
+      ]
+    },
+    "quinta": {
+      "horarios": [
+        "19:00"
+      ]
+    },
+    "sexta": {
+      "horarios": [
+        "19:00"
+      ]
+    }
+  }
+}

@@ -1,10 +1,9 @@
-import time
 import re
 import os
 import csv
 # pyrefly: ignore [missing-import]
 from playwright.sync_api import sync_playwright
-from whatsapp_utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_configuracoes
+from whatsapp_utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_enquetes
 
 def encontrar_enquete_e_abrir_votos(page, titulo):
     """
@@ -190,11 +189,11 @@ def salvar_relatorio(todos_resultados, enquetes_json, mes, ano):
     
     Args:
         todos_resultados (dict): Dicionário contendo os dados extraídos de todas as enquetes.
-        enquetes_json (list): Lista de dicionários de enquetes conforme a configuração.
+        enquetes_json (list): Lista de dicionários de enquetes geradas.
         mes (int): O mês correspondente.
         ano (int): O ano correspondente.
     """
-    filename = f"dados/resultados_{ano}_{mes:02d}.csv"
+    filename = f"dados/resultados/resultados_{ano}_{mes:02d}.csv"
     print_log(f"Salvando relatório em {filename}...")
     try:
         headers = []
@@ -244,10 +243,10 @@ def main():
     Leitura do JSON -> Login -> Scroll na conversa -> Extração -> Salvamento.
     """
     print_log("Iniciando Leitor de Enquetes...")
-    nome_grupo, enquetes_json = carregar_configuracoes()
+    nome_grupo, enquetes_json = carregar_enquetes()
     
     if not nome_grupo or not enquetes_json:
-        print_log("Configurações inválidas ou vazias. Abortando.")
+        print_log("Enquetes inválidas ou vazias. Abortando.")
         return
 
     todos_resultados = {}
@@ -279,10 +278,10 @@ def main():
         import json
         mes, ano = None, None
         try:
-            with open('dados/config.json', 'r', encoding='utf-8') as f:
-                config_data = json.load(f)
-                mes = config_data.get("mes")
-                ano = config_data.get("ano")
+            with open('dados/enquetes.json', 'r', encoding='utf-8') as f:
+                enquetes_data = json.load(f)
+                mes = enquetes_data.get("mes")
+                ano = enquetes_data.get("ano")
         except Exception:
             pass
             
