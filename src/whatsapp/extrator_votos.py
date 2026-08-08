@@ -3,7 +3,7 @@ import os
 import csv
 # pyrefly: ignore [missing-import]
 from playwright.sync_api import sync_playwright
-from whatsapp_utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_enquetes
+from utils import print_log, iniciar_navegador, abrir_whatsapp_e_aguardar_login, localizar_e_acessar_conversa, carregar_enquetes
 
 def encontrar_enquete_e_abrir_votos(page, titulo):
     """

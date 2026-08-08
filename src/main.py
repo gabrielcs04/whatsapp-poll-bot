@@ -1,7 +1,7 @@
 import sys
 import subprocess
 from pathlib import Path
-from config.gerador_config import gerar_json
+from gerador_enquetes import gerar_json
 
 def pedir_entrada_inteira(mensagem, minimo, maximo):
     """
@@ -68,7 +68,7 @@ def enviar_enquetes(base_path):
         None
     """
     print("\n[Orquestrador] -> Executando o envio das enquetes pelo WhatsApp...")
-    subprocess.run([sys.executable, str(base_path / "automation" / "criador_enquete.py")])
+    subprocess.run([sys.executable, str(base_path / "whatsapp" / "enviador_enquetes.py")])
     print("\n[Orquestrador] -> Fim da execução do robô.")
 
 def orquestrar():
@@ -103,8 +103,8 @@ def orquestrar():
             enviar_enquetes(base_path)
 
         elif opcao == 3:
-            print("\n[Orquestrador] -> Iniciando o leitor_enquete.py...")
-            subprocess.run([sys.executable, str(base_path / "automation" / "leitor_enquete.py")])
+            print("\n[Orquestrador] -> Iniciando o extrator_votos.py...")
+            subprocess.run([sys.executable, str(base_path / "whatsapp" / "extrator_votos.py")])
             print("\n[Orquestrador] -> Fim da leitura. O arquivo .csv foi gerado (ou atualizado) com sucesso.")
             
         elif opcao == 4:

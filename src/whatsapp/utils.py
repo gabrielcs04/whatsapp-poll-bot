@@ -3,7 +3,7 @@ import time
 import json
 from pathlib import Path
 
-# Raiz do projeto: whatsapp_utils.py está em src/automation/, então sobe 2 níveis
+# Raiz do projeto: utils.py está em src/whatsapp/, então sobe 2 níveis
 _RAIZ_PROJETO = Path(__file__).resolve().parent.parent.parent
 SESSAO_DIR = str(_RAIZ_PROJETO / "dados" / "sessao_whatsapp")
 ENQUETES_PATH = str(_RAIZ_PROJETO / "dados" / "enquetes.json")
