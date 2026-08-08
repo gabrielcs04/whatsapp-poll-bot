@@ -11,7 +11,7 @@ WhatsappBotEnquete/
 ├── dados/
 │   ├── config.json                     # Configuração estática base (dias da semana e horários)
 │   ├── enquetes.json                   # Enquetes geradas para um mês/ano específico
-│   ├── resultados_ANO_MES.csv          # Relatório final dos votos extraídos (ex: resultados_2026_06.csv)
+│   ├── resultados/                     # Pasta onde são salvos os CSVs com os votos extraídos (ex: resultados_2026_06.csv)
 │   └── sessao_whatsapp/                 # Credenciais de sessão do WhatsApp (evita novo QR Code)
 ├── src/
 │   ├── main.py                          # Painel interativo / Orquestrador principal
@@ -30,7 +30,7 @@ WhatsappBotEnquete/
 1. **O Painel Interativo ([src/main.py](./src/main.py))**: Gerencia a interface no terminal e chama as automações através de um menu em loop.
 2. **O Gerador Automático ([src/gerador_enquetes.py](./src/gerador_enquetes.py))**: Lê a configuração do `dados/config.json`, calcula as datas reais para um mês/ano informado e escreve as enquetes prontas em `dados/enquetes.json`.
 3. **O Enviador de Enquetes ([src/whatsapp/enviador_enquetes.py](./src/whatsapp/enviador_enquetes.py))**: Lê o `dados/enquetes.json` e envia as enquetes no grupo do WhatsApp Web.
-4. **O Extrator de Votos ([src/whatsapp/extrator_votos.py](./src/whatsapp/extrator_votos.py))**: Acessa a conversa, raspa os votos e gera um relatório em formato CSV (`dados/resultados_ANO_MES.csv`), organizando cada horário planejado como uma coluna e listando as pessoas respondentes logo abaixo.
+4. **O Extrator de Votos ([src/whatsapp/extrator_votos.py](./src/whatsapp/extrator_votos.py))**: Acessa a conversa, raspa os votos e gera um relatório em formato CSV (`dados/resultados/resultados_ANO_MES.csv`), organizando cada horário planejado como uma coluna e listando as pessoas respondentes logo abaixo.
 
 ---
 
@@ -58,7 +58,7 @@ Assim que o painel abrir, um menu contínuo será exibido:
 
 - **Opção 1 (Gerar novas enquetes):** Utiliza o `config.json` para criar os textos das enquetes de um determinado mês e os salva em `enquetes.json`. Esta opção não realiza envio no WhatsApp, apenas prepara os dados.
 - **Opção 2 (Enviar as enquetes existentes):** Lê o arquivo `enquetes.json` e inicia o Playwright para criar fisicamente as enquetes no WhatsApp.
-- **Opção 3 (Ler resultados de enquetes existentes):** Lê as enquetes do WhatsApp e gera o relatório CSV (`dados/resultados_ANO_MES.csv`).
+- **Opção 3 (Ler resultados de enquetes existentes):** Lê as enquetes do WhatsApp e gera o relatório CSV (`dados/resultados/resultados_ANO_MES.csv`).
 - **Opção 4 (Sair):** Encerra a aplicação normalmente.
 
 ### 📱 Lendo o QR Code (Primeiro Login)
