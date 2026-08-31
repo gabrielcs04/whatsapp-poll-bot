@@ -19,7 +19,7 @@ def criar_uma_enquete(page, titulo, opcoes):
     
     # 1. Abre o menu vertical de anexos
     try:
-        botao_anexo = page.locator('span[data-icon="plus-rounded"]').first
+        botao_anexo = page.locator('span[data-icon="ic-attach-file"]').first
         if not botao_anexo.is_visible():
             botao_anexo = page.locator('span[data-icon="attach-menu-plus"]').first
         botao_anexo.click()
